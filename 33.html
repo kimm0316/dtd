@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>달력에 동그라미 표시</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            width: 14.28%;
+            height: 50px;
+            text-align: center;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            position: relative;
+        }
+        .circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            border: 2px solid red;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .button-container {
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .share-button {
+            margin-top: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2 id="calendar-title"></h2>
+    <div class="button-container">
+        <button onclick="changeMonth(-1)">이전달</button>
+        <button onclick="changeMonth(1)">다음달</button>
+    </div>
+    <table id="calendar"></table>
+    <button class="share-button" onclick="shareCalendar()">공유하기</button>
+    
+    <script>
+        let currentYear, currentMonth;
+        
+        function generateCalendar(year, month) {
+            const calendar = document.getElementById("calendar");
+            const title = document.getElementById("calendar-title");
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+            
+            title.innerText = `${year}년 ${month + 1}월`;
+            
+            let html = "<tr>" + weekdays.map(day => `<th>${day}</th>`).join("") + "</tr><tr>";
+            for (let i = 0; i < firstDay; i++) {
+                html += "<td></td>";
+            }
+            for (let i = 1; i <= daysInMonth; i++) {
+                html += `<td onclick="toggleCircle(this)">${i}</td>`;
+                if ((i + firstDay) % 7 === 0) html += "</tr><tr>";
+            }
+            html += "</tr>";
+            calendar.innerHTML = html;
+        }
+        
+        function changeMonth(offset) {
+            currentMonth += offset;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            generateCalendar(currentYear, currentMonth);
+        }
+        
+        function toggleCircle(cell) {
+            const existingCircle = cell.querySelector(".circle");
+            if (existingCircle) {
+                cell.removeChild(existingCircle);
+            } else {
+                const circle = document.createElement("div");
+                circle.className = "circle";
+                cell.appendChild(circle);
+            }
+        }
+        
+        function shareCalendar() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: "공유 달력",
+                    text: "내 달력을 확인해보세요!",
+                    url: url
+                }).then(() => console.log("공유 성공"))
+                .catch(error => console.log("공유 실패", error));
+            } else {
+                prompt("아래 링크를 복사하여 공유하세요:", url);
+            }
+        }
+        
+        const today = new Date();
+        currentYear = today.getFullYear();
+        currentMonth = today.getMonth();
+        generateCalendar(currentYear, currentMonth);
+    </script>
+</body>
+</html>
